@@ -5,7 +5,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
 import java.util.Collection;
 
 @Entity
@@ -14,14 +13,8 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotEmpty(message = "Name shouldnt be empty")
-    @Size(min = 2, max = 25, message = "Name size should be from 2 to 25 characters")
     private String username;
-    @NotEmpty(message = "Password shouldnt be empty")
-    @Size(min = 4, max = 16, message = "Password size should be from 4 to 16 characters")
     private String password;
-    @Min(value = 1, message = "Age should be greater than 0")
-    @Digits(integer = 3, fraction = 0, message = "Age max length is 3")
     private int age;
 
     public User() {}

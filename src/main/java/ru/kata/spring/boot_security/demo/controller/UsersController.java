@@ -1,11 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.validation.BindingResult;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.model.UserDTO;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,10 +47,7 @@ public class UsersController {
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "new";
-        }
+    public String create(@ModelAttribute("user") User user) {
         userServiceImpl.create(user);
         return REDIRECT;
     }
@@ -72,10 +65,7 @@ public class UsersController {
     }
 
     @PatchMapping("/{id}")
-    public String edit(@ModelAttribute("user") @Valid User user, BindingResult bindingResult, @PathVariable("id") Long id) {
-        if (bindingResult.hasErrors()) {
-            return "edit";
-        }
+    public String edit(@ModelAttribute("user") User user, @PathVariable("id") Long id) {
         userServiceImpl.update(user.getUsername(), user.getPassword(), user.getAge(), id);
         return REDIRECT;
     }

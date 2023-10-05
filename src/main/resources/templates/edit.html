@@ -7,15 +7,15 @@
 <body>
 <form th:method="PATCH" th:action="@{/admin/{id}(id=${user.getId()})}" th:object="${user}">
     <label for="username">Username</label>
-    <input type="text" th:field="*{username}" id="username">
+    <input type="text" th:field="*{username}" id="username" pattern="[A-Za-z]\w+" required minlength="4" maxlength="16">
     <div style="color:red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
     <br/>
     <label for="password">Password</label>
-    <input type="text" th:field="*{password}" id="password"/>
+    <input type="text" th:field="*{password}" id="password" required minlength="4" maxlength="16"/>
     <div style="color:red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
     <br/>
     <label for="age">Age</label>
-    <input type="text" th:field="*{age}" id="age"/>
+    <input type="text" th:field="*{age}" id="age" min="1" max="100"/>
     <div style="color:red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}"></div>
     <br/>
     <input type="submit" value="Edit"/>
