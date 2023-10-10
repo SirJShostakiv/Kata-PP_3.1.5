@@ -7,6 +7,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 @SpringBootApplication
 @PropertySource("classpath:application.properties")
 @EnableTransactionManagement
@@ -14,8 +19,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "ru.kata.spring.boot_security.demo.repository")
 public class SpringBootSecurityDemoApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringBootSecurityDemoApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SpringBootSecurityDemoApplication.class, args);
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_security?" +
+                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
+                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+             CallableStatement callable = conn.prepareCall("{call CreateInitialUsers()}")) {
+
+            callable.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }
