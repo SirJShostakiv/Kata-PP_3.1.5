@@ -10,8 +10,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/admin")
@@ -26,20 +30,13 @@ public class UsersController {
     }
 
     @GetMapping()
-    public String onlyAdmins(Model model, Principal principal) {
-        List<String> messageList = new ArrayList<>();
-        messageList.add(String.format("Hello, admin '%s', this is my first CRUD application", principal.getName()));
-        messageList.add("There you can show, add, edit and delete some phantom users\n");
-        model.addAttribute("messages", messageList);
-        return "start";
-    }
-
-    @GetMapping("/users")
-    public String getUsers(Model model) {
+    public String onlyAdmins(Model model, Principal principal) throws SQLException {
+        String[] roles = userServiceImpl.getRoles(principal.getName());
+        model.addAttribute("username", principal.getName());
+        model.addAttribute("rolesList", String.join(" ", roles));
         model.addAttribute("users", userServiceImpl.read());
-        return "users";
+        return "admin";
     }
-
     @GetMapping("/new")
     public String newUser(Model model) {
         model.addAttribute("user", new User());

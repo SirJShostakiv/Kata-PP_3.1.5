@@ -2,6 +2,7 @@ package ru.kata.spring.boot_security.demo.dao;
 
 import ru.kata.spring.boot_security.demo.model.User;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface UserDAO {
@@ -12,4 +13,5 @@ public interface UserDAO {
     User getByID(Long id);
     public User findByUsername(String username);
     List<Long> getIdList();
+    public String[] getRoles(String username) throws SQLException;
 }

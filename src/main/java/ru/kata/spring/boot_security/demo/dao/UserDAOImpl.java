@@ -12,6 +12,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -76,12 +79,53 @@ public class UserDAOImpl implements UserDAO{
     }
 
     @Override
-    public User findByUsername(String username) {
-        return read().stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
+    public User findByUsername(String email) {
+        return read().stream().filter(u -> u.getUsername().equals(email)).findFirst().orElse(null);
     }
 
     @Override
     public List<Long> getIdList() {
         return read().stream().map(User::getId).toList();
+    }
+
+    @Override
+    public String[] getRoles(String email) throws SQLException {
+        List<String> rolesList = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
+                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
+                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+             Statement statement = conn.createStatement()) {
+
+            String query = String.format("SELECT * FROM users_roles WHERE users_id='%d'", findByUsername(email).getId());
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                rolesList.add(rs.getString(2));
+            }
+            String[] roles_id = new String[rolesList.size()];
+            roles_id = rolesList.toArray(roles_id);
+
+            return getRoleNamesById(roles_id);
+        }
+    }
+
+    public String[] getRoleNamesById(String[] roles_id) {
+        List<String> rolesList = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
+                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
+                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+             Statement statement = conn.createStatement()) {
+            for (String roles : roles_id) {
+                String query = String.format("SELECT * FROM roles WHERE id='%s'", roles);
+                ResultSet rs = statement.executeQuery(query);
+                rs.next();
+                rolesList.add(rs.getString(2).substring(5));
+            }
+            String[] roles = new String[rolesList.size()];
+            roles = rolesList.toArray(roles);
+            return roles;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

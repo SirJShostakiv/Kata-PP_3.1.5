@@ -13,10 +13,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserDAOImpl userDAOImpl;
 
@@ -55,25 +58,34 @@ public class UserServiceImpl implements UserService {
         return userDAOImpl.getByID(id);
     }
 
+    @Transactional
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userDAOImpl.findByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userDAOImpl.findByUsername(email);
         if (user == null) {
-            throw new UsernameNotFoundException(String.format("User '%s' not found", username));
+            throw new UsernameNotFoundException(String.format("User '%s' not found", email));
         }
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), mapRolesToAuthorities(user.getRoles()));
     }
 
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
+    @Transactional
+    public Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
         return roles.stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList();
     }
 
+    @Transactional
     @Override
     public User findByUsername(String username) {
         return userDAOImpl.read().stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
     }
+    @Transactional
     @Override
     public List<Long> getIdList() {
         return userDAOImpl.getIdList();
+    }
+    @Transactional
+    @Override
+    public String[] getRoles(String email) throws SQLException {
+        return userDAOImpl.getRoles(email);
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
 
@@ -20,13 +21,13 @@ public class HelloController {
     public HelloController(UserServiceImpl userServiceImpl) {
         this.userServiceImpl = userServiceImpl;
     }
-    @GetMapping("/")
-    public String helloMessage(Model model) {
-        List<String> messageList = new ArrayList<>();
-        messageList.add("Hello, this is my first CRUD app\n");
-        messageList.add("There you can show, add, edit and delete some phantom users\n");
-        model.addAttribute("messages", messageList);
-        return "index";
+    @GetMapping("")
+    public String getLogin(@RequestParam(value = "error", required = false) String error,
+                           @RequestParam(value = "logout", required = false) String logout,
+                           Model model) {
+        model.addAttribute("error", error != null);
+        model.addAttribute("logout", logout != null);
+        return "login_page";
     }
     @GetMapping("/user")
     public String users(Model model, Principal principal) {
@@ -34,4 +35,5 @@ public class HelloController {
         model.addAttribute("user", user);
         return "user";
     }
+
 }
