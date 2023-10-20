@@ -85,7 +85,10 @@ public class UserServiceImpl implements UserService {
     }
     @Transactional
     @Override
-    public String[] getRoles(String email) throws SQLException {
+    public String getRoles(String email) throws SQLException {
         return userDAOImpl.getRoles(email);
+    }
+    public UserDAOImpl getDAO() {
+        return userDAOImpl;
     }
 }

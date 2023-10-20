@@ -13,5 +13,5 @@ public interface UserDAO {
     User getByID(Long id);
     public User findByUsername(String username);
     List<Long> getIdList();
-    public String[] getRoles(String username) throws SQLException;
+    public String getRoles(String username) throws SQLException;
 }

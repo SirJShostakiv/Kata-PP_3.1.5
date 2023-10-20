@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
+import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import java.sql.SQLException;
@@ -14,5 +15,5 @@ public interface UserService extends UserDetailsService {
     User getByID(Long id);
     List<Long> getIdList();
     public User findByUsername(String username);
-    public String[] getRoles(String username) throws SQLException;
+    public String getRoles(String username) throws SQLException;
 }

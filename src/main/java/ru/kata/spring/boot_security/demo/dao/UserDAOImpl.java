@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.dao;
 
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -15,18 +16,20 @@ import javax.transaction.Transactional;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 @Transactional
 @ComponentScan("app")
-public class UserDAOImpl implements UserDAO{
+public class UserDAOImpl implements UserDAO {
 
     private final EntityManagerFactory entityManagerFactory;
     @Autowired
     public UserDAOImpl(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
+
     @Override
     public void create(User user) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -35,6 +38,7 @@ public class UserDAOImpl implements UserDAO{
         em.getTransaction().commit();
         em.close();
     }
+
     @Override
     public List<User> read() {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -46,8 +50,11 @@ public class UserDAOImpl implements UserDAO{
         cq.select(root);
 
         TypedQuery<User> query = em.createQuery(cq);
-        return query.getResultList();
+        List<User> userList = query.getResultList();
+        em.close();
+        return userList;
     }
+
     @Override
     public void update(User user, Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -75,7 +82,9 @@ public class UserDAOImpl implements UserDAO{
     @Override
     public User getByID(Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();
-        return em.find(User.class, id);
+        User user = em.find(User.class, id);
+        em.close();
+        return user;
     }
 
     @Override
@@ -89,43 +98,65 @@ public class UserDAOImpl implements UserDAO{
     }
 
     @Override
-    public String[] getRoles(String email) throws SQLException {
+    public String getRoles(String email) throws SQLException {
+        List<String> rolesId = new ArrayList<>();
         List<String> rolesList = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
                 "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
                 "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
-             Statement statement = conn.createStatement()) {
+             Statement statement1 = conn.createStatement();
+             Statement statement2 = conn.createStatement()) {
 
             String query = String.format("SELECT * FROM users_roles WHERE users_id='%d'", findByUsername(email).getId());
-            ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
-                rolesList.add(rs.getString(2));
+            ResultSet rs1 = statement1.executeQuery(query);
+            while (rs1.next()) {
+                rolesId.add(rs1.getString(2));
             }
-            String[] roles_id = new String[rolesList.size()];
-            roles_id = rolesList.toArray(roles_id);
+            String[] roles_id = new String[rolesId.size()];
+            roles_id = rolesId.toArray(roles_id);
 
-            return getRoleNamesById(roles_id);
-        }
-    }
-
-    public String[] getRoleNamesById(String[] roles_id) {
-        List<String> rolesList = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
-             Statement statement = conn.createStatement()) {
             for (String roles : roles_id) {
-                String query = String.format("SELECT * FROM roles WHERE id='%s'", roles);
-                ResultSet rs = statement.executeQuery(query);
-                rs.next();
-                rolesList.add(rs.getString(2).substring(5));
+                String query2 = String.format("SELECT * FROM roles WHERE id='%s'", roles);
+                ResultSet rs2 = statement2.executeQuery(query2);
+                rs2.next();
+                rolesList.add(rs2.getString(2).substring(5));
             }
             String[] roles = new String[rolesList.size()];
             roles = rolesList.toArray(roles);
-            return roles;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return String.join(" ", roles);
+
         }
+    }
+
+    public void setRoles(String roles) {
+        String countQuery = "SELECT COUNT(*) FROM users";
+        long count = 0L;
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
+                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
+                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+             Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(countQuery);
+            while (rs.next()) {
+                count++;
+            }
+            switch (roles) {
+                case "ADMIN":
+                    String query1 = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 1)", count + 2);
+                    String query2 = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 2)", count + 2);
+                    statement.execute(query1);
+                    statement.execute(query2);
+                    break;
+                case "USER":
+                    String query = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 2)", count + 2);
+                    statement.execute(query);
+                    break;
+                default:
+                    throw new RuntimeException();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 }

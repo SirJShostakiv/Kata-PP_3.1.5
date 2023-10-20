@@ -1,11 +1,18 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
 
 import javax.persistence.*;
+import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -25,13 +32,15 @@ public class User implements UserDetails {
     @Column(name = "email")
     private String email;
 
-    public User() {}
+    public User() {
+    }
 
     public User(String email, int age, String password) {
         this.email = email;
         this.age = age;
         this.password = password;
     }
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "users_id"),
@@ -99,8 +108,8 @@ public class User implements UserDetails {
         return roles;
     }
 
-    public void setRoles(Collection<Role> roles) {
-        this.roles = roles;
+    public String getRolesInText() {
+        return roles.stream().map(r -> r.getAuthority().substring(5)).collect(Collectors.joining(" "));
     }
 
     public String getFirstname() {

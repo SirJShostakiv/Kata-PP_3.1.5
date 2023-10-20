@@ -31,18 +31,13 @@ public class UsersController {
 
     @GetMapping()
     public String onlyAdmins(Model model, Principal principal) throws SQLException {
-        String[] roles = userServiceImpl.getRoles(principal.getName());
         model.addAttribute("username", principal.getName());
-        model.addAttribute("rolesList", String.join(" ", roles));
+        model.addAttribute("rolesList", userServiceImpl.getRoles(principal.getName()));
         model.addAttribute("users", userServiceImpl.read());
+        model.addAttribute("user", userServiceImpl.findByUsername(principal.getName()));
+        model.addAttribute("DAO", userServiceImpl.getDAO());
         return "admin";
     }
-    @GetMapping("/new")
-    public String newUser(Model model) {
-        model.addAttribute("user", new User());
-        return "new";
-    }
-
     @PostMapping()
     public String create(@ModelAttribute("user") User user) {
         userServiceImpl.create(user);
