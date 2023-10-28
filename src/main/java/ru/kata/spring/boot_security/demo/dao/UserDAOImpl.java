@@ -14,17 +14,18 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Repository
 @Transactional
 @ComponentScan("app")
 public class UserDAOImpl implements UserDAO {
 
+    private final String URL = "jdbc:mysql://localhost:3306/crud_app_bootstrap?verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    private final String DATABASE_USERNAME = "root";
+    private final String DATABASE_PASSWORD = "wGgfwfyg672";
     private final EntityManagerFactory entityManagerFactory;
+
     @Autowired
     public UserDAOImpl(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
@@ -37,6 +38,7 @@ public class UserDAOImpl implements UserDAO {
         em.persist(user);
         em.getTransaction().commit();
         em.close();
+        fixRolesId(user);
     }
 
     @Override
@@ -59,11 +61,15 @@ public class UserDAOImpl implements UserDAO {
     public void update(User user, Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
-        User updatedUser = em.find(User.class, id);
+        User updatedUser = em.find(User.class, user.getId());
 
-        updatedUser.setUsername(user.getUsername());
-        updatedUser.setPassword(user.getPassword());
+        updatedUser.setId(user.getId());
+        updatedUser.setFirstname(user.getFirstname());
+        updatedUser.setLastname(user.getLastname());
         updatedUser.setAge(user.getAge());
+        updatedUser.setPassword(user.getPassword());
+        updatedUser.setEmail(user.getEmail());
+        updateRoles(user);
 
         em.merge(updatedUser);
         em.getTransaction().commit();
@@ -72,6 +78,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public void delete(Long id) {
+        deleteRoles(id);
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         em.remove(em.find(User.class, id));
@@ -80,83 +87,102 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User getByID(Long id) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        User user = em.find(User.class, id);
-        em.close();
-        return user;
-    }
-
-    @Override
-    public User findByUsername(String email) {
+    public User findByEmail(String email) {
         return read().stream().filter(u -> u.getUsername().equals(email)).findFirst().orElse(null);
     }
 
     @Override
-    public List<Long> getIdList() {
-        return read().stream().map(User::getId).toList();
+    public Set<Role> getAllRoles() {
+        Set<Role> rolesList = new HashSet<>();
+        try (Connection conn = DriverManager.getConnection(URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+             Statement statement = conn.createStatement()) {
+
+            String query = "SELECT * FROM roles";
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                Long id = rs.getLong(1);
+                String role = rs.getString(2);
+                Role userRole = new Role(id, role);
+                rolesList.add(userRole);
+            }
+            return rolesList;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public String getRoles(String email) throws SQLException {
-        List<String> rolesId = new ArrayList<>();
-        List<String> rolesList = new ArrayList<>();
-
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
-             Statement statement1 = conn.createStatement();
-             Statement statement2 = conn.createStatement()) {
-
-            String query = String.format("SELECT * FROM users_roles WHERE users_id='%d'", findByUsername(email).getId());
-            ResultSet rs1 = statement1.executeQuery(query);
-            while (rs1.next()) {
-                rolesId.add(rs1.getString(2));
-            }
-            String[] roles_id = new String[rolesId.size()];
-            roles_id = rolesId.toArray(roles_id);
-
-            for (String roles : roles_id) {
-                String query2 = String.format("SELECT * FROM roles WHERE id='%s'", roles);
-                ResultSet rs2 = statement2.executeQuery(query2);
-                rs2.next();
-                rolesList.add(rs2.getString(2).substring(5));
-            }
-            String[] roles = new String[rolesList.size()];
-            roles = rolesList.toArray(roles);
-            return String.join(" ", roles);
-
-        }
-    }
-
-    public void setRoles(String roles) {
-        String countQuery = "SELECT COUNT(*) FROM users";
-        long count = 0L;
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+    public void updateRoles(User user) {
+        try (Connection conn = DriverManager.getConnection(URL, DATABASE_USERNAME, DATABASE_PASSWORD);
              Statement statement = conn.createStatement()) {
-            ResultSet rs = statement.executeQuery(countQuery);
+            String userRoles = String.format("SELECT * FROM users_roles WHERE users_id=%d", user.getId());
+            ResultSet rs = statement.executeQuery(userRoles);
+
+            List<String> userPastRolesList = new ArrayList<>();
+            List<String> userFutureRolesList = user.getRoles().stream().map(Role::getName).toList();
             while (rs.next()) {
-                count++;
+                switch (rs.getString(2)) {
+                    case "1":
+                        userPastRolesList.add("ROLE_ADMIN");
+                        break;
+                    case "2":
+                        userPastRolesList.add("ROLE_USER");
+                        break;
+                    default:
+                        throw new RuntimeException("Switch exception");
+                }
             }
-            switch (roles) {
-                case "ADMIN":
-                    String query1 = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 1)", count + 2);
-                    String query2 = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 2)", count + 2);
-                    statement.execute(query1);
-                    statement.execute(query2);
-                    break;
-                case "USER":
-                    String query = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 2)", count + 2);
-                    statement.execute(query);
-                    break;
-                default:
-                    throw new RuntimeException();
+            if (userPastRolesList.contains("ROLE_ADMIN") && userFutureRolesList.contains("ROLE_USER")) {
+                String query = String.format("DELETE FROM users_roles WHERE users_id=%d AND roles_id=1", user.getId());
+                statement.execute(query);
+            } else if (userPastRolesList.contains("ROLE_USER") && userPastRolesList.size() == 1 && userFutureRolesList.contains("ROLE_ADMIN")) {
+                String query = String.format("INSERT IGNORE INTO users_roles (users_id, roles_id) VALUES (%d, 1)", user.getId());
+                statement.execute(query);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void fixRolesId(User user) {
+        int count = 0;
+        try (Connection conn = DriverManager.getConnection(URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+             Statement statement = conn.createStatement();
+             Statement statement1 = conn.createStatement();
+             Statement statement2 = conn.createStatement()) {
+            String query1 = String.format("SELECT * FROM users_roles WHERE users_id=%d", user.getId());
+            ResultSet rs = statement.executeQuery(query1);
+
+            while (rs.next()) {
+                count++;
+            }
+
+            if (count == 2) {
+                String query2 = String.format("UPDATE IGNORE users_roles SET roles_id=1 WHERE users_id=%d AND roles_id=3", user.getId());
+                statement1.execute(query2);
+                String query3 = String.format("UPDATE IGNORE users_roles SET roles_id=2 WHERE users_id=%d AND roles_id=4", user.getId());
+                statement2.execute(query3);
+            } else if (count == 1) {
+                String query3 = String.format("UPDATE IGNORE users_roles SET roles_id=2 WHERE users_id=%d", user.getId());
+                statement2.execute(query3);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteRoles(Long id) {
+        try (Connection conn = DriverManager.getConnection(URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+             Statement statement = conn.createStatement()) {
+            String query = String.format("DELETE IGNORE FROM users_roles WHERE users_id=%d", id);
+            statement.execute(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

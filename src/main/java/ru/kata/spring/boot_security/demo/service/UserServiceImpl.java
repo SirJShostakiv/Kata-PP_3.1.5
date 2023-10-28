@@ -13,10 +13,9 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -54,14 +53,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User getByID(Long id) {
-        return userDAOImpl.getByID(id);
-    }
-
-    @Transactional
-    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userDAOImpl.findByUsername(email);
+        User user = userDAOImpl.findByEmail(email);
         if (user == null) {
             throw new UsernameNotFoundException(String.format("User '%s' not found", email));
         }
@@ -75,18 +68,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User findByUsername(String username) {
+    public User findByEmail(String username) {
         return userDAOImpl.read().stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
     }
     @Transactional
     @Override
-    public List<Long> getIdList() {
-        return userDAOImpl.getIdList();
-    }
-    @Transactional
-    @Override
-    public String getRoles(String email) throws SQLException {
-        return userDAOImpl.getRoles(email);
+    public Set<Role> getAllRoles() {
+        return userDAOImpl.getAllRoles();
     }
     public UserDAOImpl getDAO() {
         return userDAOImpl;

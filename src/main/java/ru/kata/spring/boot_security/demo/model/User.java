@@ -1,17 +1,10 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
 
 import javax.persistence.*;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -33,19 +26,14 @@ public class User implements UserDetails {
     private String email;
 
     public User() {
+        //Hibernate entity
     }
 
-    public User(String email, int age, String password) {
-        this.email = email;
-        this.age = age;
-        this.password = password;
-    }
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "users_id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id"))
-    private Collection<Role> roles;
+    private Set<Role> roles;
 
     public Long getId() {
         return id;
@@ -59,10 +47,6 @@ public class User implements UserDetails {
         return email;
     }
 
-    public void setUsername(String username) {
-        this.email = username;
-    }
-
     public int getAge() {
         return age;
     }
@@ -72,8 +56,8 @@ public class User implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getName())).toList();
+    public Set<? extends GrantedAuthority> getAuthorities() {
+        return getRoles();
     }
 
     public String getPassword() {
@@ -104,12 +88,12 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public Collection<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public String getRolesInText() {
-        return roles.stream().map(r -> r.getAuthority().substring(5)).collect(Collectors.joining(" "));
+    public String getRolesToString() {
+        return roles.stream().map(Role::toString).collect(Collectors.joining(" "));
     }
 
     public String getFirstname() {
@@ -134,5 +118,10 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return roles.toString();
     }
 }

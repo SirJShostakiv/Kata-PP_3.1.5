@@ -1,15 +1,85 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Spring Security Example</title>
+    <meta charset="UTF-8">
+    <title>User panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+          crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+            crossorigin="anonymous"></script>
+
 </head>
 <body>
-<h1>Welcome to spring boot security page!</h1>
-<div>
-    <p th:text="'Username: ' + ${user.getUsername}"></p>
-    <p th:text="'Password: ' + ${user.getPassword}"></p>
-    <p th:text="'Age: ' + ${user.getAge}"></p>
-    <a th:href="@{/logout}">Logout</a>
+
+<div class="container-fluid bg-dark m-0 p-0">
+    <div class="row m-0 p-2 ">
+        <div class="col-11 text-white">
+            <span class="h5">
+                <th:block
+                        th:text="${user.getEmail()}">
+                </th:block>
+            </span>
+            <span class="font-weight-light">
+                <th:block
+                        th:text="'with roles: '+ ${user.getRolesToString()}">
+                </th:block>
+            </span>
+        </div>
+        <div class="col-1 text-white">
+            <a class="btn-link text-secondary" type="submit" href="/logout">Logout</a>
+        </div>
+    </div>
+</div>
+
+<br>
+
+<div class="d-flex align-items-start">
+    <div class="col-2 m-0 p-0">
+        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <a class="nav-link active" id="v-pills-user-tab" data-bs-toggle="pill" href="#v-pills-user"
+               role="tab" aria-controls="v-pills-user" aria-selected="true">User</a>
+        </div>
+    </div>
+    <div class="col-10 m-0 ">
+        <div class="tab-content container-fluid" id="v-pills-tabContent">
+            <div class="tab-pane fade show active px-3" id="v-pills-user" role="tabpanel"
+                 aria-labelledby="v-pills-user-tab">
+                <div class="h1 my-3">User information-page</div>
+                <br>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="h5">About user</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">First Name</th>
+                                <th scope="col">Last Name</th>
+                                <th scope="col">Age</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Role</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td th:text="${user.getId}"></td>
+                                <td th:text="${user.getFirstname()}"></td>
+                                <td th:text="${user.getLastname()}"></td>
+                                <td th:text="${user.getAge()}"></td>
+                                <td th:text="${user.getEmail()}"></td>
+                                <td th:text="${user.getRolesToString()}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

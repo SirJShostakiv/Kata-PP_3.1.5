@@ -10,58 +10,37 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/admin")
 @ComponentScan("ru")
-public class UsersController {
+public class AdminController {
     private static final String REDIRECT = "redirect:/admin";
     private final UserServiceImpl userServiceImpl;
 
     @Autowired
-    public UsersController(UserServiceImpl userServiceImpl) {
+    public AdminController(UserServiceImpl userServiceImpl) {
         this.userServiceImpl = userServiceImpl;
     }
 
-    @GetMapping()
-    public String onlyAdmins(Model model, Principal principal) throws SQLException {
-        model.addAttribute("username", principal.getName());
-        model.addAttribute("rolesList", userServiceImpl.getRoles(principal.getName()));
+    @GetMapping("")
+    public String onlyAdmins(Model model, Principal principal) {
         model.addAttribute("users", userServiceImpl.read());
-        model.addAttribute("user", userServiceImpl.findByUsername(principal.getName()));
+        model.addAttribute("user", userServiceImpl.findByEmail(principal.getName()));
+        model.addAttribute("allRoles", userServiceImpl.getAllRoles());
+        model.addAttribute("userNew", new User());
         model.addAttribute("DAO", userServiceImpl.getDAO());
         return "admin";
     }
-    @PostMapping()
+
+    @PostMapping("/add")
     public String create(@ModelAttribute("user") User user) {
         userServiceImpl.create(user);
         return REDIRECT;
     }
 
-    @GetMapping("/enter_id")
-    public String getId() {
-        return "enter_id";
-    }
-
-    @GetMapping("/{id}")
-    public String getEdit(@PathVariable("id") @RequestParam("id") Long id, Model model) {
-        List<Long> idList = new ArrayList<>(userServiceImpl.getIdList());
-        if (!idList.contains(id)) {
-            return "input_error";
-        }
-        User user = userServiceImpl.getByID(id);
-        model.addAttribute("user", user);
-        return "edit";
-    }
-
     @PatchMapping("/{id}")
-    public String edit(@ModelAttribute("user") User user, @PathVariable("id") Long id) {
+    public String edit(@PathVariable("id") Long id, @ModelAttribute("user") User user) {
         userServiceImpl.update(user, id);
         return REDIRECT;
     }
