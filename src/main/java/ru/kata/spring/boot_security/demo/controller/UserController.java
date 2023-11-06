@@ -15,12 +15,10 @@ import java.security.Principal;
 @ComponentScan("ru")
 public class UserController {
     private final UserServiceImpl userServiceImpl;
-
     @Autowired
     public UserController(UserServiceImpl userServiceImpl) {
         this.userServiceImpl = userServiceImpl;
     }
-
     @GetMapping("")
     public String getLogin(@RequestParam(value = "error", required = false) String error,
                            @RequestParam(value = "logout", required = false) String logout,
@@ -29,7 +27,6 @@ public class UserController {
         model.addAttribute("logout", logout != null);
         return "login_page";
     }
-
     @GetMapping("/user")
     public String users(Model model, Principal principal) {
         User user = userServiceImpl.findByEmail(principal.getName());

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 
 @Transactional
 public class Util {
-    private Util(){}
     public static void initiateUsers() {
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
                 "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
@@ -17,7 +16,7 @@ public class Util {
 
             callable.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

@@ -1,9 +1,16 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
 
 import javax.persistence.*;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,7 +33,6 @@ public class User implements UserDetails {
     private String email;
 
     public User() {
-        //Hibernate entity
     }
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
@@ -92,6 +98,17 @@ public class User implements UserDetails {
         return roles;
     }
 
+    public void setRoles(String role) {
+        switch (role) {
+            case "ADMIN":
+                this.roles = Set.of(new Role(this.getId(), "ROLE_ADMIN"), new Role(this.getId(), "ROLE_USER"));
+                break;
+            case "USER":
+                this.roles = Set.of(new Role(this.getId(), "ROLE_USER"));
+                break;
+            default: throw new RuntimeException("Switch input incorrect");
+        }
+    }
     public String getRolesToString() {
         return roles.stream().map(Role::toString).collect(Collectors.joining(" "));
     }

@@ -13,6 +13,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +54,12 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
+    public User getByID(Long id) {
+        return userDAOImpl.getByID(id);
+    }
+
+    @Transactional
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userDAOImpl.findByEmail(email);
         if (user == null) {
@@ -70,6 +77,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByEmail(String username) {
         return userDAOImpl.read().stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
+    }
+    @Transactional
+    @Override
+    public List<Long> getIdList() {
+        return userDAOImpl.getIdList();
     }
     @Transactional
     @Override
