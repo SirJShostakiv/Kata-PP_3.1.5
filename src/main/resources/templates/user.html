@@ -18,11 +18,13 @@
         <div class="col-11 text-white">
             <span class="h5">
                 <th:block
+                        th:method="GET" th:object:="${user}"
                         th:text="${user.getEmail()}">
                 </th:block>
             </span>
             <span class="font-weight-light">
                 <th:block
+                        th:method="GET" th:object:="${user}"
                         th:text="'with roles: '+ ${user.getRolesToString()}">
                 </th:block>
             </span>

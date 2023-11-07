@@ -1,17 +1,10 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
 
 import javax.persistence.*;
-import java.sql.Statement;
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -33,6 +26,7 @@ public class User implements UserDetails {
     private String email;
 
     public User() {
+        //Entity
     }
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)

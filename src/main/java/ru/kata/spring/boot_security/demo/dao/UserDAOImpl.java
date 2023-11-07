@@ -1,10 +1,10 @@
 package ru.kata.spring.boot_security.demo.dao;
 
-import ru.kata.spring.boot_security.demo.model.Role;
-import ru.kata.spring.boot_security.demo.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Repository;
+import ru.kata.spring.boot_security.demo.model.Role;
+import ru.kata.spring.boot_security.demo.model.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -14,13 +14,19 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Repository
 @Transactional
 @ComponentScan("app")
 public class UserDAOImpl implements UserDAO {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/crud_app_bootstrap?verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    private static final String DB_USERNAME = "root";
+    private static final String DB_PASSWORD = "wGgfwfyg672";
+
 
     private final EntityManagerFactory entityManagerFactory;
     @Autowired
@@ -104,9 +110,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Set<Role> getAllRoles() {
         Set<Role> rolesList = new HashSet<>();
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
              Statement statement = conn.createStatement()) {
 
             String query = "SELECT * FROM roles";
@@ -125,9 +129,7 @@ public class UserDAOImpl implements UserDAO {
     }
     @Override
     public void updateRoles(User user) {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
              Statement statement = conn.createStatement()) {
             String userRoles = String.format("SELECT * FROM users_roles WHERE users_id=%d", user.getId());
             ResultSet rs = statement.executeQuery(userRoles);
@@ -161,9 +163,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void fixRolesId(User user) {
         int count = 0;
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
              Statement statement = conn.createStatement();
              Statement statement1 = conn.createStatement();
              Statement statement2 = conn.createStatement()) {
@@ -191,9 +191,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public void deleteRoles(Long id) {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/crud_app_bootstrap?" +
-                "verifyServerCertificate=false&useSSL=false&requireSSL=false&useLegacyDatetimeCode=false&amp&" +
-                "serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "wGgfwfyg672");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
              Statement statement = conn.createStatement()) {
             String query = String.format("DELETE IGNORE FROM users_roles WHERE users_id=%d", id);
             statement.execute(query);
