@@ -7,13 +7,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.kata.spring.boot_security.demo.dao.UserDAOImpl;
+import ru.kata.spring.boot_security.demo.exception_handling.NoSuchUserException;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Transactional
@@ -39,19 +39,28 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void update(User user, Long id) {
-        userDAOImpl.update(user, id);
+    public void update(User user) {
+        userDAOImpl.update(user);
     }
 
     @Transactional
     @Override
-    public void delete(Long id) {
-        userDAOImpl.delete(id);
+    public String delete(Long id) {
+        if (userDAOImpl.getByID(id) == null) {
+            throw new NoSuchUserException("There is no such user with id = "
+                    + id + " in the database.");
+        } else {
+            userDAOImpl.delete(id);
+            return "User with ID = " + id + " was deleted.";
+        }
     }
 
     @Transactional
     @Override
     public User getByID(Long id) {
+        if (userDAOImpl.getByID(id) == null) {
+            throw new NoSuchUserException("There is no such user with id " + id + " in the database.");
+        }
         return userDAOImpl.getByID(id);
     }
 
@@ -75,17 +84,10 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String username) {
         return userDAOImpl.read().stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
     }
+
     @Transactional
     @Override
-    public List<Long> getIdList() {
-        return userDAOImpl.getIdList();
-    }
-    @Transactional
-    @Override
-    public Set<Role> getAllRoles() {
+    public String[] getAllRoles() {
         return userDAOImpl.getAllRoles();
-    }
-    public UserDAOImpl getDAO() {
-        return userDAOImpl;
     }
 }

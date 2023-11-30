@@ -10,10 +10,9 @@ import java.util.Set;
 public interface UserService extends UserDetailsService {
     void create(User user);
     List<User> read();
-    void update(User user, Long id);
-    void delete(Long id);
+    void update(User user);
+    String delete(Long id);
     User getByID(Long id);
-    List<Long> getIdList();
     public User findByEmail(String username);
-    public Set<Role> getAllRoles();
+    public String[] getAllRoles();
 }

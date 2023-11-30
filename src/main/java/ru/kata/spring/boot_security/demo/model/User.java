@@ -29,7 +29,7 @@ public class User implements UserDetails {
         //Entity
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "users_id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id"))
@@ -92,16 +92,8 @@ public class User implements UserDetails {
         return roles;
     }
 
-    public void setRoles(String role) {
-        switch (role) {
-            case "ADMIN":
-                this.roles = Set.of(new Role(this.getId(), "ROLE_ADMIN"), new Role(this.getId(), "ROLE_USER"));
-                break;
-            case "USER":
-                this.roles = Set.of(new Role(this.getId(), "ROLE_USER"));
-                break;
-            default: throw new RuntimeException("Switch input incorrect");
-        }
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
     public String getRolesToString() {
         return roles.stream().map(Role::toString).collect(Collectors.joining(" "));

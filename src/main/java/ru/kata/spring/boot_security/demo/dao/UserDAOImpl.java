@@ -15,9 +15,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Repository
 @Transactional
@@ -61,7 +59,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public void update(User user, Long id) {
+    public void update(User user) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         User updatedUser = em.find(User.class, user.getId());
@@ -108,24 +106,8 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public Set<Role> getAllRoles() {
-        Set<Role> rolesList = new HashSet<>();
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-             Statement statement = conn.createStatement()) {
-
-            String query = "SELECT * FROM roles";
-            ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
-                Long id = rs.getLong(1);
-                String role = rs.getString(2);
-                Role userRole = new Role(id, role);
-                rolesList.add(userRole);
-            }
-            return rolesList;
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public String[] getAllRoles() {
+        return new String[]{"USER", "ADMIN"};
     }
     @Override
     public void updateRoles(User user) {
