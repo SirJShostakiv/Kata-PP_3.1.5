@@ -223,9 +223,9 @@
             'Content-Type': 'application/json',
             'Referer': null
         },
-        findAllUsers: async () => await fetch(`/api/all`),
+        findAllUsers: async () => await fetch(`api`),
         findOneUser: async (id) => await fetch(`api/${id}`),
-        addNewUser: async (user) => await fetch(`api/post`, {method: 'POST', headers: userFetchService.head, body: JSON.stringify(user)}),
+        addNewUser: async (user) => await fetch(`api`, {method: 'POST', headers: userFetchService.head, body: JSON.stringify(user)}),
         updateUser: async (user, id) => await fetch(`api/${id}`, {method: 'PUT', headers: userFetchService.head, body: JSON.stringify(user)}),
         deleteUser: async (id) => await fetch(`api/${id}`, {method: 'DELETE', headers: userFetchService.head})
     }

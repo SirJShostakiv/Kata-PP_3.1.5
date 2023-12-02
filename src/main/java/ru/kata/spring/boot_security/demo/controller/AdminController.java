@@ -42,12 +42,12 @@ public class AdminController {
         return userServiceImpl.getByID(id);
     }
 
-    @GetMapping("/api/all")
+    @GetMapping("/api")
     public List<User> getAll() {
         return userServiceImpl.read();
     }
 
-    @PostMapping("api/post")
+    @PostMapping("/api")
     public User create(@RequestBody User user) {
         userServiceImpl.create(user);
         return user;
